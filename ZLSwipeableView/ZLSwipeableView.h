@@ -12,7 +12,7 @@
 
 /// Delegate
 @protocol ZLSwipeableViewDelegate <NSObject>
-
+@optional
 - (void)swipeableView: (ZLSwipeableView *)swipeableView didSwipeLeft:(UIView *)view;
 
 - (void)swipeableView: (ZLSwipeableView *)swipeableView didSwipeRight:(UIView *)view;
@@ -23,6 +23,9 @@
 
 - (void)swipeableView: (ZLSwipeableView *)swipeableView didEndSwipingView:(UIView *)view atLocation:(CGPoint)location;
 
+- (void)swipeableView: (ZLSwipeableView *)swipeableView didShowSwipingView:(UIView *)view;
+
+- (void)swipeableView: (ZLSwipeableView *)swipeableView didDiscardView:(UIView *)view;
 @end
 
 
@@ -70,12 +73,16 @@
 /// Mangintude of rotation for swiping views manually
 @property (nonatomic) CGFloat manualSwipeRotationRelativeYOffsetFromCenter;
 
+@property (nonatomic) BOOL swipeable;
+
+@property (nonatomic) NSUInteger prefetchCount;
+
 /// Discard all swipeable views on the screen.
 -(void)discardAllSwipeableViews;
 
 /// Load up to 3 swipeable views.
 -(void)loadNextSwipeableViewsIfNeeded;
-
+-(void)loadNextSwipeableViewsIfNeeded:(BOOL)animated;
 /// Swipe top view to the left programmatically
 -(void)swipeTopViewToLeft;
 
