@@ -11,15 +11,16 @@
 #import "UIColor+FlatColors.h"
 #import "CardView.h"
 
-@interface ViewController () <ZLSwipeableViewDataSource, ZLSwipeableViewDelegate>
+@interface ViewController () <ZLSwipeableViewDataSource,
+                              ZLSwipeableViewDelegate, UIActionSheetDelegate>
 
 @property (nonatomic, weak) IBOutlet ZLSwipeableView *swipeableView;
 
 @property (nonatomic, strong) NSArray *colors;
 @property (nonatomic) NSUInteger colorIndex;
 
+@property (nonatomic) BOOL loadCardFromXib;
 @end
-
 
 @implementation ViewController
 
@@ -27,42 +28,36 @@
     [super viewDidLoad];
     // Do any additional setup after loading the view, typically from a nib.
     self.colorIndex = 0;
-    self.colors = @[@"Turquoise",
-                    @"Green Sea",
-                    @"Emerald",
-                    @"Nephritis",
-                    @"Peter River",
-                    @"Belize Hole",
-                    @"Amethyst",
-                    @"Wisteria",
-                    @"Wet Asphalt",
-                    @"Midnight Blue",
-                    @"Sun Flower",
-                    @"Orange",
-                    @"Carrot",
-                    @"Pumpkin",
-                    @"Alizarin",
-                    @"Pomegranate",
-                    @"Clouds",
-                    @"Silver",
-                    @"Concrete",
-                    @"Asbestos"];
-    
-    NSLog(@"bounds: %f %f %f %f", self.swipeableView.bounds.origin.x, self.swipeableView.bounds.origin.y, self.swipeableView.bounds.size.width, self.swipeableView.bounds.size.height);
+    self.colors = @[
+        @"Turquoise",
+        @"Green Sea",
+        @"Emerald",
+        @"Nephritis",
+        @"Peter River",
+        @"Belize Hole",
+        @"Amethyst",
+        @"Wisteria",
+        @"Wet Asphalt",
+        @"Midnight Blue",
+        @"Sun Flower",
+        @"Orange",
+        @"Carrot",
+        @"Pumpkin",
+        @"Alizarin",
+        @"Pomegranate",
+        @"Clouds",
+        @"Silver",
+        @"Concrete",
+        @"Asbestos"
+    ];
 
-    [self.view setNeedsLayout];
-    [self.view layoutIfNeeded];
-    
-    // Required Data Source
-    self.swipeableView.dataSource = self;
-    
     // Optional Delegate
     self.swipeableView.delegate = self;
 }
 
 - (void)viewDidLayoutSubviews {
-    [self.swipeableView setNeedsLayout];
-    [self.swipeableView layoutIfNeeded];
+    // Required Data Source
+    self.swipeableView.dataSource = self;
 }
 
 #pragma mark - Action
@@ -74,36 +69,66 @@
 - (IBAction)swipeRightButtonAction:(UIButton *)sender {
     [self.swipeableView swipeTopViewToRight];
 }
+- (IBAction)swipeUpButtonAction:(UIButton *)sender {
+    [self.swipeableView swipeTopViewToUp];
+}
+- (IBAction)swipeDownButtonAction:(UIButton *)sender {
+    [self.swipeableView swipeTopViewToDown];
+}
 
 - (IBAction)reloadButtonAction:(UIButton *)sender {
+    UIActionSheet *actionSheet = [[UIActionSheet alloc]
+                 initWithTitle:@"Load Cards"
+                      delegate:self
+             cancelButtonTitle:@"Cancel"
+        destructiveButtonTitle:nil
+             otherButtonTitles:@"Programmatically", @"From Xib", nil];
+    [actionSheet showInView:self.view];
+}
+
+#pragma mark - UIActionSheetDelegate
+- (void)actionSheet:(UIActionSheet *)actionSheet
+    clickedButtonAtIndex:(NSInteger)buttonIndex {
+    self.loadCardFromXib = buttonIndex == 1;
+
     self.colorIndex = 0;
+
     [self.swipeableView discardAllSwipeableViews];
     [self.swipeableView loadNextSwipeableViewsIfNeeded];
 }
 
-
 #pragma mark - ZLSwipeableViewDelegate
 
-- (void)swipeableView:(ZLSwipeableView *)swipeableView didSwipeLeft:(UIView *)view {
-	NSLog(@"did swipe left");
+- (void)swipeableView:(ZLSwipeableView *)swipeableView
+         didSwipeView:(UIView *)view
+          inDirection:(ZLSwipeableViewDirection)direction {
+    NSLog(@"did swipe in direction: %zd", direction);
 }
 
-- (void)swipeableView:(ZLSwipeableView *)swipeableView didSwipeRight:(UIView *)view {
-	NSLog(@"did swipe right");
+- (void)swipeableView:(ZLSwipeableView *)swipeableView
+       didCancelSwipe:(UIView *)view {
+    NSLog(@"did cancel swipe");
 }
 
-- (void)swipeableView:(ZLSwipeableView *)swipeableView didStartSwipingView:(UIView *)view atLocation:(CGPoint)location {
-	NSLog(@"did start swiping at location: x %f, y %f", location.x, location.y);
+- (void)swipeableView:(ZLSwipeableView *)swipeableView
+    didStartSwipingView:(UIView *)view
+             atLocation:(CGPoint)location {
+    NSLog(@"did start swiping at location: x %f, y %f", location.x, location.y);
 }
 
-- (void)swipeableView:(ZLSwipeableView *)swipeableView swipingView:(UIView *)view atLocation:(CGPoint)location  translation:(CGPoint)translation {
-	NSLog(@"swiping at location: x %f, y %f, translation: x %f, y %f", location.x, location.y, translation.x, translation.y);
+- (void)swipeableView:(ZLSwipeableView *)swipeableView
+          swipingView:(UIView *)view
+           atLocation:(CGPoint)location
+          translation:(CGPoint)translation {
+    NSLog(@"swiping at location: x %f, y %f, translation: x %f, y %f",
+          location.x, location.y, translation.x, translation.y);
 }
 
-- (void)swipeableView:(ZLSwipeableView *)swipeableView didEndSwipingView:(UIView *)view atLocation:(CGPoint)location {
-	NSLog(@"did end swiping at location: x %f, y %f", location.x, location.y);
+- (void)swipeableView:(ZLSwipeableView *)swipeableView
+    didEndSwipingView:(UIView *)view
+           atLocation:(CGPoint)location {
+    NSLog(@"did end swiping at location: x %f, y %f", location.x, location.y);
 }
-
 
 #pragma mark - ZLSwipeableViewDataSource
 
@@ -112,18 +137,57 @@
         CardView *view = [[CardView alloc] initWithFrame:swipeableView.bounds];
         view.backgroundColor = [self colorForName:self.colors[self.colorIndex]];
         self.colorIndex++;
+
+        if (self.loadCardFromXib) {
+            UIView *contentView =
+                [[[NSBundle mainBundle] loadNibNamed:@"CardContentView"
+                                               owner:self
+                                             options:nil] objectAtIndex:0];
+            contentView.translatesAutoresizingMaskIntoConstraints = NO;
+            [view addSubview:contentView];
+
+            // This is important:
+            // https://github.com/zhxnlai/ZLSwipeableView/issues/9
+            NSDictionary *metrics = @{
+                @"height" : @(view.bounds.size.height),
+                @"width" : @(view.bounds.size.width)
+            };
+            NSDictionary *views = NSDictionaryOfVariableBindings(contentView);
+            [view addConstraints:
+                      [NSLayoutConstraint
+                          constraintsWithVisualFormat:@"H:|[contentView(width)]"
+                                              options:0
+                                              metrics:metrics
+                                                views:views]];
+            [view addConstraints:[NSLayoutConstraint
+                                     constraintsWithVisualFormat:
+                                         @"V:|[contentView(height)]"
+                                                         options:0
+                                                         metrics:metrics
+                                                           views:views]];
+        } else {
+            UITextView *textView =
+                [[UITextView alloc] initWithFrame:view.bounds];
+            textView.text = @"This UITextView was created programmatically.";
+            textView.backgroundColor = [UIColor clearColor];
+            textView.font = [UIFont systemFontOfSize:24];
+            textView.editable = NO;
+            textView.selectable = NO;
+            [view addSubview:textView];
+        }
+
         return view;
     }
     return nil;
 }
 
-
 #pragma mark - ()
 
-- (UIColor *)colorForName:(NSString *)name
-{
-    NSString *sanitizedName = [name stringByReplacingOccurrencesOfString:@" " withString:@""];
-    NSString *selectorString = [NSString stringWithFormat:@"flat%@Color", sanitizedName];
+- (UIColor *)colorForName:(NSString *)name {
+    NSString *sanitizedName =
+        [name stringByReplacingOccurrencesOfString:@" " withString:@""];
+    NSString *selectorString =
+        [NSString stringWithFormat:@"flat%@Color", sanitizedName];
     Class colorClass = [UIColor class];
     return [colorClass performSelector:NSSelectorFromString(selectorString)];
 }
